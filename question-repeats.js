@@ -8,7 +8,29 @@ function click_submit_button_later(answer_dom) {
 function remove_question_text_from_answer(answer_dom) {
   setTimeout(function () {
     var doc_dom = answer_dom.getElementsByClassName('doc')[0];
-    doc_dom.innerHTML = doc_dom.innerHTML.replace(question_text, '');
+    
+    // Rather than using _.innerHTML = _.innerHTML.replace(question, ''), we want to walk down to the first/lowest
+    // div containing the question text and use innerText instead since we lose event handlers on nested elements 
+    // by serializing/deserializing the full innerHTML body.
+    first_section = doc_dom.getElementsByClassName('section')[0];
+    section_spans = first_section.getElementsByClassName('span');
+    target_dom = null;
+    for (i = 0; i < section_spans.length - 1; i++) {
+      span = section_spans[i];
+      
+      if (span.innerText.includes(question_text)) {
+        target_dom = span.getElementsByClassName('content')[0];
+        break;
+      }
+    }
+    
+    if (target_dom == null) {
+      // Couldn't find the proper section/span -- debug and exit
+      console.log("Couldn't find target_dom");
+    }
+
+    // Do the replacement inline
+    target_dom.innerText = target_dom.innerText.replace(question_text, '');
     
     // Write explanation for edit:
     answer_dom.getElementsByClassName('doc')[1].innerText = "It's unnecessary to repeat the question text at the top of your question.";
